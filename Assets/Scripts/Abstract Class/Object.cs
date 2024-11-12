@@ -21,7 +21,8 @@ public abstract class Object : MonoBehaviour
         InitializeComponents();
         
     }
-    protected virtual void Awake() {
+    protected virtual void Awake() 
+    {
         InitializeParameters();
     }
     protected virtual void InitializeComponents()
@@ -31,11 +32,13 @@ public abstract class Object : MonoBehaviour
     }
     protected virtual void InitializeParameters() 
     {
+        m_detectionTimer = 0;
         m_cooldownTimer = m_cooldownInterval;
     }
-    protected virtual void OnCollisionEffect() { }
+    protected virtual void OnTriggerEffect() { }
+    protected virtual void DetectCollision() { }
     private void OnTriggerEnter2D(Collider2D collider)
     {
-        if(collider.tag == "Player") OnCollisionEffect();
+        if(collider.tag == "Player") OnTriggerEffect();
     }
 }

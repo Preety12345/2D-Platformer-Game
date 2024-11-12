@@ -12,19 +12,23 @@ public class Spike : Object
     {
         base.InitializeParameters();
         m_cooldownInterval = 1f;
-        m_cooldownTimer = m_cooldownInterval;
     }
 
     private void Update()
     {
-        DetectCollision();
+        m_detectionTimer += Time.deltaTime;
+        if(m_detectionTimer > m_detectionInterval)
+        {
+            DetectCollision();
+            m_detectionTimer = 0f;
+        }
     }
     private void OnDrawGizmos()
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireCube(m_boxCollider.bounds.center, m_detectionRadius);
     }
-    private void DetectCollision()
+    protected override void DetectCollision()
     {
         Collider2D collider = Physics2D.OverlapBox(m_transform.position, m_detectionRadius, 90f, LayerMask.GetMask("Player"));
         if (collider != null && collider.TryGetComponent(out PlayerController player))

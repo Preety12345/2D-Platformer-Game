@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using TMPro;
 using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
@@ -8,7 +7,6 @@ public class PlayerController : MonoBehaviour
     private const string k_moduleName1 = nameof(PlayerController);
     [Header(k_moduleName1 + "    :     Assignables"), SerializeField, Range(0, 0)]
     private byte m_header1;
-    [SerializeField]private GameObject fallDetector;
     [SerializeField]private Transform groundCheck;
     [SerializeField] private Image HealthFillImg;
     [SerializeField]private LayerMask groundLayer;
@@ -35,15 +33,15 @@ public class PlayerController : MonoBehaviour
     {
         isTouchingGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
         direction = Input.GetAxis("Horizontal");
-        if(direction > 0f)
+        if(Input.GetKey(KeyCode.D))
         {
-            m_rb.velocity = new Vector2(direction * speed, m_rb.velocity.y);
-            if(m_spriteRenderer.flipX)m_spriteRenderer.flipX = false;
+            direction = 1f;
+            Move(direction);
         }
-        else if (direction < 0f)
+        else if (Input.GetKey(KeyCode.A))
         {
-            m_rb.velocity = new Vector2(direction * speed, m_rb.velocity.y);
-            if (!m_spriteRenderer.flipX) m_spriteRenderer.flipX = true;
+            direction = -1f;
+            Move(direction);
         }
         else m_rb.velocity = new Vector2(0, m_rb.velocity.y);
 
@@ -51,11 +49,8 @@ public class PlayerController : MonoBehaviour
         {
             m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
         }
-
         m_animator.SetFloat("Speed", Mathf.Abs(m_rb.velocity.x));
         m_animator.SetBool("OnGround", isTouchingGround);
-
-        fallDetector.transform.position=new Vector2(transform.position.x, fallDetector.transform.position.y);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -68,15 +63,10 @@ public class PlayerController : MonoBehaviour
         {
             respawnPoint = transform.position;
         }
-        // Checking Teleportation between levels
-        else if(collision.tag == "NextLevel")
+        
+        else if(collision.tag == "Portal")
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-            respawnPoint = transform.position;
-        }
-        else if (collision.tag == "PreviousLevel")
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex - 1);
             respawnPoint = transform.position;
         }
     }
@@ -98,6 +88,19 @@ public class PlayerController : MonoBehaviour
         m_currentHealth = m_maxHealth;
         HealthFillImg.fillAmount = 1;
         respawnPoint = transform.position;
+    }
+
+    private void Move(in float p_direction)
+    {
+        m_rb.velocity = new Vector2(direction * speed, m_rb.velocity.y);
+        if(p_direction>0)
+        {
+            if (m_spriteRenderer.flipX) m_spriteRenderer.flipX = false;
+        }
+        else
+        {
+            if (!m_spriteRenderer.flipX) m_spriteRenderer.flipX = true;
+        }
     }
 
     public void ReceiveDamage(in int p_amount)
