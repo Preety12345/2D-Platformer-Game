@@ -9,19 +9,24 @@ public class PlayerController : MonoBehaviour
     private byte m_header1;
     [SerializeField]private Transform groundCheck;
     [SerializeField] private Image HealthFillImg;
-    [SerializeField]private LayerMask groundLayer;
 
-    [SerializeField] private int m_currentHealth;
+    private int m_currentHealth;
     private int m_maxHealth;
     private float speed;
     private float jumpSpeed;
-    private float direction;
+    private float climbSpeed;
+    private float horizontalInput;
+    private float verticalInput;
     private float groundCheckRadius;
     private bool isTouchingGround;
+    private bool isTouchingLadder;
     private Rigidbody2D m_rb;
     private SpriteRenderer m_spriteRenderer;
     private Animator m_animator;
     private Vector3 respawnPoint;
+    private CapsuleCollider2D m_collider;
+
+    public float HorizontalInput => horizontalInput;
 
     private void Awake()
     {
@@ -31,43 +36,39 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        isTouchingGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        direction = Input.GetAxis("Horizontal");
-        if(Input.GetKey(KeyCode.D))
+        isTouchingGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ground"));
+        isTouchingLadder = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ladder"));
+        Climb();
+        if (Input.GetKey(KeyCode.D))
         {
-            direction = 1f;
-            Move(direction);
+            horizontalInput = 1f;
+            Move(horizontalInput);
         }
         else if (Input.GetKey(KeyCode.A))
         {
-            direction = -1f;
-            Move(direction);
-        }
+            horizontalInput = -1f;
+            Move(horizontalInput);
+        }        
         else m_rb.velocity = new Vector2(0, m_rb.velocity.y);
-
-        if (Input.GetButtonDown("Jump") && isTouchingGround)
-        {
-            m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
-        }
+        if (Input.GetKeyDown(KeyCode.Space) && isTouchingGround) m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
         m_animator.SetFloat("Speed", Mathf.Abs(m_rb.velocity.x));
         m_animator.SetBool("OnGround", isTouchingGround);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if(collision.tag == "FallDetector")
+        string name = collision.tag;
+        switch(name)
         {
-            transform.position = respawnPoint;
-        }
-        else if(collision.tag == "Checkpoint")
-        {
-            respawnPoint = transform.position;
-        }
-        
-        else if(collision.tag == "Portal")
-        {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
-            respawnPoint = transform.position;
+            case "FallDetector":
+                transform.position = respawnPoint;
+                break;
+            case "CheckPoint":
+                respawnPoint = transform.position;
+                break;
+            case "Portal":
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+                break;
         }
     }
 
@@ -76,14 +77,16 @@ public class PlayerController : MonoBehaviour
         m_rb = GetComponent<Rigidbody2D>();
         m_animator = GetComponent<Animator>();
         m_spriteRenderer = GetComponent<SpriteRenderer>();
+        m_collider = GetComponent<CapsuleCollider2D>();
     }
 
     private void InitializeParameters()
     {
         speed = 3f;
         jumpSpeed = 8f;
-        direction = 0f;
+        horizontalInput = 0f;
         groundCheckRadius = 0.2f;
+        climbSpeed = 4f;
         m_maxHealth = 100;
         m_currentHealth = m_maxHealth;
         HealthFillImg.fillAmount = 1;
@@ -92,14 +95,31 @@ public class PlayerController : MonoBehaviour
 
     private void Move(in float p_direction)
     {
-        m_rb.velocity = new Vector2(direction * speed, m_rb.velocity.y);
-        if(p_direction>0)
+        m_rb.velocity = new Vector2(horizontalInput * speed, m_rb.velocity.y);
+        if (p_direction > 0)
         {
             if (m_spriteRenderer.flipX) m_spriteRenderer.flipX = false;
         }
+
         else
         {
             if (!m_spriteRenderer.flipX) m_spriteRenderer.flipX = true;
+        }
+    }
+
+    private void Climb()
+    {
+        if(isTouchingLadder)
+        {
+            m_rb.gravityScale = 0f;
+            m_collider.enabled = false;
+            verticalInput = Input.GetKey(KeyCode.W) ? 1f : Input.GetKey(KeyCode.S) ? -1f : 0;
+            m_rb.velocity = new Vector2(0, verticalInput * climbSpeed);
+        }
+        else
+        {
+            m_collider.enabled = true;
+            m_rb.gravityScale = 1f;
         }
     }
 
