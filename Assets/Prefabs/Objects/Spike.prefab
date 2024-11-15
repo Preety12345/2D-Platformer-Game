@@ -147,5 +147,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_header1: 0
-  m_damage: 2
+  m_damage: 5
   m_detectionRadius: {x: 2, y: 0.5}

@@ -55,7 +55,7 @@ public class GameManager : MonoBehaviour
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         if(spawnPointsDict.TryGetValue(scene.name, out Transform spawnPoint)){
-            Instantiate(playerPrefab, spawnPoint.position, Quaternion.identity);
+            if(scene.name == "Level1") Instantiate(playerPrefab, spawnPoint.position, Quaternion.identity);
         }
         Debug.Log("New scene loaded: " + scene.name);
     }

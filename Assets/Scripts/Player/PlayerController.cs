@@ -8,6 +8,7 @@ public class PlayerController : MonoBehaviour
     [Header(k_moduleName1 + "    :     Assignables"), SerializeField, Range(0, 0)]
     private byte m_header1;
     [SerializeField]private Transform groundCheck;
+    [SerializeField] private ParticleSystem jetSmoke;
     [SerializeField] private Image HealthFillImg;
 
     private int m_currentHealth;
@@ -18,13 +19,16 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private float verticalInput;
     private float groundCheckRadius;
-    private bool isTouchingGround;
-    private bool isTouchingLadder;
+    [SerializeField]private bool isTouchingGround;
+    [SerializeField]private bool isTouchingLadder;
     private Rigidbody2D m_rb;
     private SpriteRenderer m_spriteRenderer;
     private Animator m_animator;
     private Vector3 respawnPoint;
+    private Vector2 jetSmokeInitialPos;
     private CapsuleCollider2D m_collider;
+    private readonly int ac_jump = Animator.StringToHash("Jump");
+    private readonly int ac_climb = Animator.StringToHash("Climb");
 
     public float HorizontalInput => horizontalInput;
 
@@ -50,9 +54,8 @@ public class PlayerController : MonoBehaviour
             Move(horizontalInput);
         }        
         else m_rb.velocity = new Vector2(0, m_rb.velocity.y);
-        if (Input.GetKeyDown(KeyCode.Space) && isTouchingGround) m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
+        Jump();
         m_animator.SetFloat("Speed", Mathf.Abs(m_rb.velocity.x));
-        m_animator.SetBool("OnGround", isTouchingGround);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -91,6 +94,7 @@ public class PlayerController : MonoBehaviour
         m_currentHealth = m_maxHealth;
         HealthFillImg.fillAmount = 1;
         respawnPoint = transform.position;
+        jetSmokeInitialPos = new Vector2(-1.09f, 1.04f);
     }
 
     private void Move(in float p_direction)
@@ -99,12 +103,23 @@ public class PlayerController : MonoBehaviour
         if (p_direction > 0)
         {
             if (m_spriteRenderer.flipX) m_spriteRenderer.flipX = false;
+            jetSmoke.transform.localPosition = jetSmokeInitialPos;
         }
 
         else
         {
             if (!m_spriteRenderer.flipX) m_spriteRenderer.flipX = true;
+            jetSmoke.transform.localPosition = new Vector2(1.09f, 1.04f);
         }
+    }
+    private void Jump()
+    {
+        if (Input.GetKeyDown(KeyCode.Space) && isTouchingGround)
+        {
+            m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
+            jetSmoke.Play();
+        }
+        if(!isTouchingLadder)m_animator.SetBool(ac_jump, isTouchingGround);
     }
 
     private void Climb()
@@ -115,12 +130,15 @@ public class PlayerController : MonoBehaviour
             m_collider.enabled = false;
             verticalInput = Input.GetKey(KeyCode.W) ? 1f : Input.GetKey(KeyCode.S) ? -1f : 0;
             m_rb.velocity = new Vector2(0, verticalInput * climbSpeed);
+            
         }
         else
         {
             m_collider.enabled = true;
             m_rb.gravityScale = 1f;
         }
+        m_animator.SetBool(ac_climb, !isTouchingGround && isTouchingLadder ? true : false);
+        Debug.LogError(ac_climb);
     }
 
     public void ReceiveDamage(in int p_amount)
