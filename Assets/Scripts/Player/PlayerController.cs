@@ -138,7 +138,6 @@ public class PlayerController : MonoBehaviour
             m_rb.gravityScale = 1f;
         }
         m_animator.SetBool(ac_climb, !isTouchingGround && isTouchingLadder ? true : false);
-        Debug.LogError(ac_climb);
     }
 
     public void ReceiveDamage(in int p_amount)
