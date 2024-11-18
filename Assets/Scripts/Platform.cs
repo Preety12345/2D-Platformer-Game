@@ -12,4 +12,12 @@ public class Platform : MonoBehaviour
         visual.position = Vector2.MoveTowards(visual.position, wayPoints[currentWayPoint].position, moveSpeed* Time.deltaTime);
         if(Vector2.Distance(visual.position, wayPoints[currentWayPoint].position) < 0.1f) currentWayPoint = (currentWayPoint + 1) % wayPoints.Length;
     }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Player") collision.gameObject.transform.SetParent(visual, true);
+    }
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.tag == "Player") collision.gameObject.transform.SetParent(null);
+    }
 }

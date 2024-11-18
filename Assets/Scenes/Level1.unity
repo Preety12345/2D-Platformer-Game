@@ -1967,11 +1967,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4978506604691537331, guid: c770b521baefccf47bf3df774637bc59, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -27.84
+      value: -28
       objectReference: {fileID: 0}
     - target: {fileID: 4978506604691537331, guid: c770b521baefccf47bf3df774637bc59, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 2.040275
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 4978506604691537331, guid: c770b521baefccf47bf3df774637bc59, type: 3}
       propertyPath: m_LocalPosition.z
@@ -2005,13 +2005,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 5439516270796004222, guid: c770b521baefccf47bf3df774637bc59, type: 3}
-      propertyPath: moveSpeed
-      value: 2
-      objectReference: {fileID: 0}
     - target: {fileID: 7365746625224614783, guid: c770b521baefccf47bf3df774637bc59, type: 3}
       propertyPath: m_Name
       value: GreenTree_Platform
+      objectReference: {fileID: 0}
+    - target: {fileID: 7365746625224614783, guid: c770b521baefccf47bf3df774637bc59, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

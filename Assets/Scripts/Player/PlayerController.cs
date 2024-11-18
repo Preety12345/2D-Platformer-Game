@@ -19,19 +19,20 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private float verticalInput;
     private float groundCheckRadius;
-    [SerializeField]private bool isTouchingGround;
-    [SerializeField]private bool isTouchingLadder;
     private Rigidbody2D m_rb;
     private SpriteRenderer m_spriteRenderer;
     private Animator m_animator;
     private Vector3 respawnPoint;
     private Vector2 jetSmokeInitialPos;
+    private Vector2 previousParentPosition;
     private CapsuleCollider2D m_collider;
+    [SerializeField]private Transform currentPlatform;
     private readonly int ac_jump = Animator.StringToHash("Jump");
     private readonly int ac_climb = Animator.StringToHash("Climb");
 
     public float HorizontalInput => horizontalInput;
 
+    #region Unity:---
     private void Awake()
     {
         InitializeComponents();
@@ -40,8 +41,6 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        isTouchingGround = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ground"));
-        isTouchingLadder = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ladder"));
         Climb();
         if (Input.GetKey(KeyCode.D))
         {
@@ -58,10 +57,10 @@ public class PlayerController : MonoBehaviour
         m_animator.SetFloat("Speed", Mathf.Abs(m_rb.velocity.x));
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D collider)
     {
-        string name = collision.tag;
-        switch(name)
+        string colliderName = collider.tag;
+        switch(colliderName)
         {
             case "FallDetector":
                 transform.position = respawnPoint;
@@ -73,7 +72,13 @@ public class PlayerController : MonoBehaviour
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
                 break;
         }
+
     }
+
+    
+    #endregion
+
+    #region Setup:---
 
     private void InitializeComponents()
     {
@@ -97,6 +102,20 @@ public class PlayerController : MonoBehaviour
         jetSmokeInitialPos = new Vector2(-1.09f, 1.04f);
     }
 
+    private bool IsTouchingGround()
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ground"));
+    }
+
+    private bool IsTouchingLadder()
+    {
+        return Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, LayerMask.GetMask("Ladder"));
+    }
+
+    #endregion
+
+    #region Movement:--
+
     private void Move(in float p_direction)
     {
         m_rb.velocity = new Vector2(horizontalInput * speed, m_rb.velocity.y);
@@ -114,17 +133,17 @@ public class PlayerController : MonoBehaviour
     }
     private void Jump()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && isTouchingGround)
+        if (Input.GetKeyDown(KeyCode.Space) && IsTouchingGround())
         {
             m_rb.velocity = new Vector2(m_rb.velocity.x, jumpSpeed);
             jetSmoke.Play();
         }
-        if(!isTouchingLadder)m_animator.SetBool(ac_jump, isTouchingGround);
+        if(!IsTouchingLadder())m_animator.SetBool(ac_jump, IsTouchingGround());
     }
 
     private void Climb()
     {
-        if(isTouchingLadder)
+        if(IsTouchingLadder())
         {
             m_rb.gravityScale = 0f;
             m_collider.enabled = false;
@@ -137,8 +156,10 @@ public class PlayerController : MonoBehaviour
             m_collider.enabled = true;
             m_rb.gravityScale = 1f;
         }
-        m_animator.SetBool(ac_climb, !isTouchingGround && isTouchingLadder ? true : false);
+        m_animator.SetBool(ac_climb, !IsTouchingGround() && IsTouchingLadder() ? true : false);
     }
+
+    #endregion
 
     public void ReceiveDamage(in int p_amount)
     {
